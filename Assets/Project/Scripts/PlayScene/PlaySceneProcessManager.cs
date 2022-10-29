@@ -36,12 +36,16 @@ public class PlaySceneProcessManager : MonoBehaviour
     [SerializeField] static AudioSource metro;
     [SerializeField] static AudioSource success;
     [SerializeField] static AudioSource frick;
+    [SerializeField] static AudioSource great;
+    [SerializeField] static AudioSource bad;
     void Start()
     {
         AudioSource[] AS = GetComponents<AudioSource>();
         metro = AS[1];
         success = AS[2];
         frick = AS[3];
+        great = AS[4];
+        bad = AS[5];
         TextAsset jsonFile = Resources.Load("UFOCATCHER9_BGM") as TextAsset;
         string inputString = jsonFile.ToString();
         MusicJson music = JsonUtility.FromJson<MusicJson>(inputString);
@@ -81,10 +85,17 @@ public class PlaySceneProcessManager : MonoBehaviour
         else frick.PlayOneShot(frick.clip);
     }
 
-    static void Bad()
+    static void Great(int type)
     {
         //metro.Stop();
-        metro.PlayOneShot(metro.clip);
+        if (type != 5) great.PlayOneShot(great.clip);
+        else frick.PlayOneShot(frick.clip);
+    }
+
+    static void Bad(int type)
+    {
+        //metro.Stop();
+        bad.PlayOneShot(bad.clip);
     }
 
     void LoadNotes(MusicJson music)
@@ -153,29 +164,45 @@ public class PlaySceneProcessManager : MonoBehaviour
         //isPose = false;
     }
 
-    public static void JudgeTiming(int lineNum, int type)
+    public static bool JudgeTiming(int lineNum, int type)
     {
         NoteData note;
+        float time_diff = 0;
         note = _notes[lineNum].Find(n => Mathf.Abs(n.timing - musicTime) <= 0.5f && n.type == type);
+
         if (note != null)
         {
-            //Debug.Log("OK!: " + musicTime + " " + lineNum);
-            Success(note.type);
+            time_diff = Mathf.Abs(note.timing - musicTime);
+            Debug.Log("OK!: " + musicTime + " " + lineNum);
+            switch(time_diff)
+            {
+                case float i when time_diff <= 0.05f:
+                Success(note.type);
+                    break;
+                case float i when time_diff <= 0.1f:
+                Great(note.type);
+                    break;
+                case float i when time_diff <= 0.15f:
+                Bad(note.type);
+                    break;
+                
+            }
             if (note.noteObjects != null && note.noteObjects[0] != null && note.type != 2) Destroy(note.noteObjects[0]);
             _notes[lineNum].Remove(note);
-            return;
+            return true;
         }
         else
         {
-            //Debug.Log("Failed.: " + musicTime + " " + lineNum);
-            //Bad();
+            Debug.Log("Failed.: " + musicTime + " " + lineNum);
+            //Bad(0);
+            return false;
         }
 
-        if (type == 5)
-            JudgeTiming(lineNum, 2);
+        // if (type == 5)
+        //     JudgeTiming(lineNum, 2);
 
-        if (type == 1)
-            JudgeTiming(lineNum, 2);
+        // if (type == 1)
+        //     JudgeTiming(lineNum, 2);
         // 5のときは判定して見つからなければ2を考える
     }
 }

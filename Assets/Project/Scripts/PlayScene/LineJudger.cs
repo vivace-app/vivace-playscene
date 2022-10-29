@@ -74,12 +74,14 @@ public class LineJudger : MonoBehaviour
 
     public void Drop(PointerEventData data)
     {
+        bool noteFound = false;
         //Debug.Log("Drop: " + lineNum + "," + data.position.y + "," + data.pointerId);
         int result = CoordYPresever.isFlick(data.position.y, lineNum);
         if (result == 1) // 長押しからフリック
         {
-            Debug.Log("Flick Up!");
-            PlaySceneProcessManager.JudgeTiming(lineNum, 5);
+            // Debug.Log("Flick Up!");
+            noteFound = PlaySceneProcessManager.JudgeTiming(lineNum, 5);
+            if(!noteFound) PlaySceneProcessManager.JudgeTiming(lineNum, 2);
         }
         else // 長押し離す
         {
@@ -90,19 +92,23 @@ public class LineJudger : MonoBehaviour
 
     public void PointerDown(PointerEventData data)
     {
-        //Debug.Log("PointerDown: " + lineNum);
-        PlaySceneProcessManager.JudgeTiming(lineNum, 1);
+        bool noteFound = false;
+        Debug.Log("PointerDown: " + lineNum);
+        noteFound = PlaySceneProcessManager.JudgeTiming(lineNum, 1);
+        if(!noteFound) PlaySceneProcessManager.JudgeTiming(lineNum, 2);
         CoordYPresever.AddCoordY(data.position.y, lineNum);
         isTouched = true;
     }
 
     public void PointerUp(PointerEventData data)
     {
+        bool noteFound = false;
         int result = CoordYPresever.isFlick(data.position.y, lineNum);
         if (result == 1) // フリック
         {
-            Debug.Log("Flick Up!");
-            PlaySceneProcessManager.JudgeTiming(lineNum, 5);
+            // Debug.Log("Flick Up!");
+            noteFound = PlaySceneProcessManager.JudgeTiming(lineNum, 5);
+            if(!noteFound) PlaySceneProcessManager.JudgeTiming(lineNum, 2);
         }
         else // 長押し離す
         {
